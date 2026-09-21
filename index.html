@@ -93,6 +93,10 @@
     border-radius:9px; padding:11px 14px; word-break:break-word; user-select:all; -webkit-user-select:all}
   .cm__subj{margin:10px 0 18px; font-size:12.5px; color:var(--mute)}
   .cm__row{display:flex; gap:10px}
+  .cm__row2{display:flex; align-items:center; gap:12px; margin-top:16px; padding-top:14px; border-top:1px solid var(--line)}
+  .cm__dot{color:var(--line)}
+  .lnk{background:none; border:none; padding:0; font:inherit; font-size:13px; color:var(--green-d); cursor:pointer; text-decoration:underline; text-underline-offset:2px}
+  .lnk:hover{color:var(--green)}
   @media (max-width:480px){ .cm__row{flex-direction:column} .cm__row .btn{width:100%; text-align:center} }
 
   /* hero */
@@ -564,12 +568,17 @@
   <div class="cm__box">
     <button class="cm__x" id="cmx" type="button" aria-label="Đóng">&times;</button>
     <h3 class="cm__title" id="cmTitle">Đặt câu hỏi</h3>
-    <p class="cm__lead">Gửi tới hai địa chỉ dưới đây. Bấm <b>Mở ứng dụng email</b> để soạn sẵn, hoặc <b>Sao chép địa chỉ</b> rồi gửi từ hộp thư của bạn.</p>
+    <p class="cm__lead">Chọn cách gửi tới hai địa chỉ dưới đây — hoặc sao chép rồi gửi từ hộp thư của bạn.</p>
     <div class="cm__emails" id="cmEmails">phongnhansu@nerci.vn, rosie@buildtalentsvn.com</div>
     <p class="cm__subj" id="cmSubj"></p>
     <div class="cm__row">
-      <a class="btn btn--solid" id="cmOpen" href="#" target="_blank" rel="noopener">Mở ứng dụng email</a>
-      <button class="btn btn--ghost" id="cmCopy" type="button">Sao chép địa chỉ</button>
+      <a class="btn btn--solid" id="cmGmail" target="_blank" rel="noopener">Soạn trong Gmail</a>
+      <a class="btn btn--ghost" id="cmOutlook" target="_blank" rel="noopener">Soạn trong Outlook</a>
+    </div>
+    <div class="cm__row2">
+      <button class="lnk" id="cmCopy" type="button">Sao chép địa chỉ</button>
+      <span class="cm__dot">·</span>
+      <a class="lnk" id="cmOpen" href="#">Ứng dụng email mặc định</a>
     </div>
   </div>
 </div>
@@ -643,15 +652,25 @@
   document.getElementById('lbx').addEventListener('click',close);
   lb.addEventListener('click',function(e){if(e.target===lb)close();});
   document.addEventListener('keydown',function(e){if(e.key==='Escape')close();});
-  // contact modal (Ask / Feedback) — works inside sandbox and standalone
-  var MAIL={ask:"mailto:phongnhansu@nerci.vn,rosie@buildtalentsvn.com?subject=%5BH%E1%BB%8Fi%5D%20S%E1%BB%95%20tay%20Tuy%E1%BB%83n%20d%E1%BB%A5ng%20%26%20H%E1%BB%99i%20nh%E1%BA%ADp%20H%26H&body=Ch%C3%A0o%20anh%2Fch%E1%BB%8B%2C%0A%0AM%C3%ACnh%20c%C3%B3%20c%C3%A2u%20h%E1%BB%8Fi%20v%E1%BB%81%20S%E1%BB%95%20tay%20Tuy%E1%BB%83n%20d%E1%BB%A5ng%20%26%20H%E1%BB%99i%20nh%E1%BA%ADp%3A%0A%0A", fb:"mailto:phongnhansu@nerci.vn,rosie@buildtalentsvn.com?subject=%5BG%C3%B3p%20%C3%BD%5D%20S%E1%BB%95%20tay%20Tuy%E1%BB%83n%20d%E1%BB%A5ng%20%26%20H%E1%BB%99i%20nh%E1%BA%ADp%20H%26H&body=Ch%C3%A0o%20anh%2Fch%E1%BB%8B%2C%0A%0AM%C3%ACnh%20xin%20g%C3%B3p%20%C3%BD%20cho%20S%E1%BB%95%20tay%20Tuy%E1%BB%83n%20d%E1%BB%A5ng%20%26%20H%E1%BB%99i%20nh%E1%BA%ADp%3A%0A%0A%C2%B7%20Bi%E1%BB%83u%20m%E1%BA%ABu%20%2F%20m%E1%BB%A5c%20li%C3%AAn%20quan%3A%20%0A%C2%B7%20G%C3%B3p%20%C3%BD%3A%20%0A"};
-  var SUBJ={ask:'[Hỏi] Sổ tay Tuyển dụng & Hội nhập H&H', fb:'[Góp ý] Sổ tay Tuyển dụng & Hội nhập H&H'};
+  // contact modal (Ask / Feedback) — webmail compose links + copy, works everywhere
+  var TO='phongnhansu@nerci.vn,rosie@buildtalentsvn.com';
+  var SUBJ={"ask":"[Hỏi] Sổ tay Tuyển dụng & Hội nhập H&H","fb":"[Góp ý] Sổ tay Tuyển dụng & Hội nhập H&H"};
+  var BODY={"ask":"Chào anh/chị,\n\nMình có câu hỏi về Sổ tay Tuyển dụng & Hội nhập:\n\n","fb":"Chào anh/chị,\n\nMình xin góp ý cho Sổ tay Tuyển dụng & Hội nhập:\n\n· Biểu mẫu / mục liên quan: \n· Góp ý: \n"};
   var TITLE={ask:'Đặt câu hỏi', fb:'Gửi góp ý'};
   var EMAILS_STR="phongnhansu@nerci.vn, rosie@buildtalentsvn.com";
-  var cm=document.getElementById('cm'), cmOpen=document.getElementById('cmOpen'),
-      cmTitle=document.getElementById('cmTitle'), cmSubj=document.getElementById('cmSubj');
-  function openCM(kind){ cmTitle.textContent=TITLE[kind]; cmSubj.textContent='Tiêu đề gợi ý: '+SUBJ[kind];
-    cmOpen.href=MAIL[kind]; cm.classList.add('show'); }
+  var enc=encodeURIComponent;
+  function gmailUrl(s,b){ return 'https://mail.google.com/mail/?view=cm&fs=1&to='+enc(TO)+'&su='+enc(s)+'&body='+enc(b); }
+  function outlookUrl(s,b){ return 'https://outlook.office.com/mail/deeplink/compose?to='+enc(TO)+'&subject='+enc(s)+'&body='+enc(b); }
+  function mailtoUrl(s,b){ return 'mailto:'+TO+'?subject='+enc(s)+'&body='+enc(b); }
+  var cm=document.getElementById('cm'),
+      cmTitle=document.getElementById('cmTitle'), cmSubj=document.getElementById('cmSubj'),
+      cmGmail=document.getElementById('cmGmail'), cmOutlook=document.getElementById('cmOutlook'), cmOpen=document.getElementById('cmOpen');
+  function openCM(kind){
+    var s=SUBJ[kind], b=BODY[kind];
+    cmTitle.textContent=TITLE[kind]; cmSubj.textContent='Tiêu đề gợi ý: '+s;
+    cmGmail.href=gmailUrl(s,b); cmOutlook.href=outlookUrl(s,b); cmOpen.href=mailtoUrl(s,b);
+    cm.classList.add('show');
+  }
   function closeCM(){ cm.classList.remove('show'); }
   document.addEventListener('click',function(e){ var b=e.target.closest('[data-mail]'); if(b) openCM(b.dataset.mail); });
   document.getElementById('cmx').addEventListener('click',closeCM);
